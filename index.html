@@ -5,61 +5,60 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Jakobs Avis-tracker</title>
     <style>
-        :root { --primary: #2c3e50; --success: #27ae60; --bg: #f4f7f6; }
-        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); color: #333; padding: 15px; display: flex; justify-content: center; }
+        :root { --primary: #2c3e50; --success: #27ae60; --bg: #f4f7f6; --vipps: #ff5b24; --cash: #2ecc71; }
+        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); padding: 15px; display: flex; justify-content: center; }
         .card { background: white; width: 100%; max-width: 400px; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        h2 { text-align: center; color: var(--primary); margin-top: 0; }
-        .group { margin-bottom: 18px; }
-        label { display: block; font-weight: bold; margin-bottom: 6px; font-size: 0.9em; }
-        input, select { width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 10px; box-sizing: border-box; font-size: 16px; transition: 0.3s; }
-        input:focus { border-color: var(--success); outline: none; }
-        .calc-box { background: #eef9f2; padding: 15px; border-radius: 12px; border: 1px solid #cceadd; margin-top: 10px; }
-        .target-text { font-size: 0.85em; color: #555; margin-bottom: 10px; }
-        button { width: 100%; background: var(--success); color: white; border: none; padding: 16px; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        button:disabled { background: #ccc; }
+        h2 { text-align: center; color: var(--primary); margin-bottom: 20px; }
+        .group { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 0.9em; }
+        input, select { width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 10px; box-sizing: border-box; font-size: 16px; }
+        .split { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .section-label { font-size: 0.8em; text-transform: uppercase; color: #7f8c8d; margin-top: 10px; display: block; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        button { width: 100%; background: var(--success); color: white; border: none; padding: 16px; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 20px; }
         #status { display: none; text-align: center; }
         .summary-box { background: #f0f7ff; padding: 20px; border-radius: 15px; margin-top: 15px; text-align: left; border: 1px solid #d0e3ff; }
-        .summary-box p { margin: 10px 0; font-size: 1.1em; }
     </style>
 </head>
 <body>
 
 <div class="card">
     <div id="formContainer">
-        <h2>📰 Jakobs Avis-tracker</h2>
+        <h2>📰 Avis-tracker</h2>
         <form id="paperForm">
-            <div class="group">
-                <label>Dag</label>
-                <select name="day" id="daySelect">
-                    <option value="Lørdag">Lørdag (14 aviser)</option>
-                    <option value="Søndag">Søndag (11 aviser)</option>
-                </select>
+            <div class="split">
+                <div class="group"><label>Dag</label>
+                    <select name="day" id="daySelect">
+                        <option value="Lørdag">Lørdag</option>
+                        <option value="Søndag">Søndag</option>
+                    </select>
+                </div>
+                <div class="group"><label>Antall bestilt</label>
+                    <input type="number" name="ordered" id="ordered" value="14">
+                </div>
             </div>
 
-            <div class="group">
-                <label>Dato</label>
+            <div class="group"><label>Dato</label>
                 <select name="date" id="dateDropdown"></select>
             </div>
 
-            <div class="group">
-                <label>Antall bestilt</label>
-                <input type="number" name="ordered" id="ordered" value="14">
+            <span class="section-label">Aviser Solgt</span>
+            <div class="split">
+                <div class="group"><label style="color:var(--vipps)">På Vipps</label>
+                    <input type="number" name="vipps_sold" id="vSold" placeholder="0" required>
+                </div>
+                <div class="group"><label style="color:var(--cash)">I Kontanter</label>
+                    <input type="number" name="cash_sold" id="cSold" placeholder="0" required>
+                </div>
             </div>
 
-            <div class="group">
-                <label>Antall solgt</label>
-                <input type="number" name="sold" id="sold" placeholder="0" required>
-            </div>
-
-            <div class="calc-box">
-                <label>Betalinger (Mål: <span id="targetMoney">0</span> kr)</label>
-                <input type="number" name="cash" id="cash" placeholder="Kontanter (kr)" required>
-                <input type="number" name="vipps" id="vipps" placeholder="Vipps (kr)" style="margin-top:10px" required>
-            </div>
-
-            <div class="group" style="margin-top:15px">
-                <label>Tips (kr)</label>
-                <input type="number" name="tips" id="tips" value="0">
+            <span class="section-label">Tips mottatt (kr)</span>
+            <div class="split">
+                <div class="group"><label style="color:var(--vipps)">Vipps Tips</label>
+                    <input type="number" name="vipps_tips" id="vTips" value="0">
+                </div>
+                <div class="group"><label style="color:var(--cash)">Cash Tips</label>
+                    <input type="number" name="cash_tips" id="cTips" value="0">
+                </div>
             </div>
 
             <button type="submit" id="submitBtn">Lagre dagens salg</button>
@@ -67,42 +66,26 @@
     </div>
 
     <div id="status">
-        <h3>✅ Lagret i arket!</h3>
-        <div class="summary-box">
-            <p>💰 <strong>Jakobs lønn:</strong> <span id="resLonn">0</span> kr</p>
-            <p id="resActionText" style="color: #d35400; font-weight: bold;"></p>
-            <p>🏦 <strong>Mamma betaler VG:</strong> <span id="resVG">0</span> kr</p>
-        </div>
+        <h3>✅ Lagret!</h3>
+        <div class="summary-box" id="summary"></div>
         <button onclick="location.reload()" style="background: var(--primary); margin-top: 20px;">Logg ny dag</button>
     </div>
 </div>
 
 <script>
-    // BYTT UT MED DIN URL:
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbxwP6MlRYVGxNX6GIi6XwpIr_pV2NET2Ghitm9jGJZcVFa_AIrIEE3fHm7LMe3xpRDf/exec';
-    
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbzgNzsXBPK0NX2Q8kAqhkYjMn3m5SUKfrMH47kh-cv1oBpBLK0_UaovlwH_nNfpjAFC/exec';
     const form = document.getElementById('paperForm');
-    const daySelect = document.getElementById('daySelect');
-    const orderedInput = document.getElementById('ordered');
-    const soldInput = document.getElementById('sold');
-    const targetSpan = document.getElementById('targetMoney');
 
-    // 1. Auto-oppdater antall bestilt
-    daySelect.onchange = () => {
-        orderedInput.value = (daySelect.value === 'Lørdag') ? 14 : 11;
+    // Auto-oppdater bestilt
+    document.getElementById('daySelect').onchange = (e) => {
+        document.getElementById('ordered').value = (e.target.value === 'Lørdag') ? 14 : 11;
     };
 
-    // 2. Live oppdatering av pengemål (solgt * 55)
-    soldInput.oninput = () => {
-        targetSpan.innerText = (soldInput.value * 55);
-    };
-
-    // 3. Generer datoer (Siste 2 uker med helger)
+    // Dato-generator
     const today = new Date();
     for (let i = 0; i < 14; i++) {
-        let d = new Date();
-        d.setDate(today.getDate() - i);
-        if (d.getDay() === 0 || d.getDay() === 6) { 
+        let d = new Date(); d.setDate(today.getDate() - i);
+        if (d.getDay() === 0 || d.getDay() === 6) {
             let opt = document.createElement('option');
             opt.value = d.toLocaleDateString('nb-NO');
             opt.innerHTML = d.toLocaleDateString('nb-NO', { weekday: 'short', day: 'numeric', month: 'short' });
@@ -110,39 +93,30 @@
         }
     }
 
-    // 4. Innsending
     form.onsubmit = e => {
         e.preventDefault();
-        const btn = document.getElementById('submitBtn');
-        btn.disabled = true;
-        btn.innerText = "Lagrer...";
-
-        // Beregn lokalt for oppsummeringen på skjermen
-        const solgt = Number(soldInput.value);
-        const vipps = Number(document.getElementById('vipps').value);
-        const tips = Number(document.getElementById('tips').value);
-        const tilVG = solgt * 33;
-        const lonn = (solgt * 22) + tips;
-        const balanse = vipps - tilVG;
+        document.getElementById('submitBtn').innerText = "Lagrer...";
+        
+        const vS = Number(document.getElementById('vSold').value);
+        const cS = Number(document.getElementById('cSold').value);
+        const vT = Number(document.getElementById('vTips').value);
+        const cT = Number(document.getElementById('cTips').value);
+        
+        const totalSolgt = vS + cS;
+        const vippsInn = (vS * 55) + vT;
+        const tilVG = totalSolgt * 33;
+        const lonn = (totalSolgt * 22) + vT + cT;
+        const balanse = vippsInn - tilVG;
 
         fetch(scriptURL, { method: 'POST', body: new FormData(form)})
-            .then(res => {
+            .then(() => {
                 document.getElementById('formContainer').style.display = 'none';
                 document.getElementById('status').style.display = 'block';
-                document.getElementById('resLonn').innerText = lonn;
-                document.getElementById('resVG').innerText = tilVG;
-                
-                const actionPara = document.getElementById('resActionText');
-                if (balanse < 0) {
-                    actionPara.innerHTML = "💸 Jakob må gi mamma:<br>" + Math.abs(balanse) + " kr i CASH";
-                } else {
-                    actionPara.innerHTML = "💸 Mamma overfører til Jakob:<br>" + balanse + " kr til BANK";
-                }
-            })
-            .catch(err => {
-                alert("Det skjedde en feil: " + err);
-                btn.disabled = false;
-                btn.innerText = "Prøv igjen";
+                document.getElementById('summary').innerHTML = `
+                    <p>💰 <strong>Jakobs lønn:</strong> ${lonn} kr</p>
+                    <p style="color:#d35400; font-weight:bold">${balanse < 0 ? '💸 Jakob gir mamma: ' + Math.abs(balanse) + ' kr i CASH' : '💸 Mamma gir Jakob: ' + balanse + ' kr til BANK'}</p>
+                    <p>🏦 <strong>Til VG:</strong> ${tilVG} kr</p>
+                `;
             });
     };
 </script>

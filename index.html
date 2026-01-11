@@ -73,15 +73,13 @@
 </div>
 
 <script>
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbwzZ0Ko8mf2LZr7ofp1pMiseXNKJDVuqp2w3rYph5LPK0eVqqYNbmn4tymSYtYzyFKZ/exec';
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbwzZ0Ko8mf2LZr7ofp1pMiseXNKJDVuqp2w3rYph5LPK0eVqqYNbmn4tymSYtYzyFKZ/exec'; // Sjekk at denne er fra din NYESTE distribusjon
     const form = document.getElementById('paperForm');
 
-    // Auto-oppdater bestilt
     document.getElementById('daySelect').onchange = (e) => {
         document.getElementById('ordered').value = (e.target.value === 'Lørdag') ? 14 : 11;
     };
 
-    // Dato-generator
     const today = new Date();
     for (let i = 0; i < 14; i++) {
         let d = new Date(); d.setDate(today.getDate() - i);
@@ -95,7 +93,9 @@
 
     form.onsubmit = e => {
         e.preventDefault();
-        document.getElementById('submitBtn').innerText = "Lagrer...";
+        const btn = document.getElementById('submitBtn');
+        btn.disabled = true;
+        btn.innerText = "Lagrer...";
         
         const vS = Number(document.getElementById('vSold').value);
         const cS = Number(document.getElementById('cSold').value);
@@ -108,15 +108,31 @@
         const lonn = (totalSolgt * 22) + vT + cT;
         const balanse = vippsInn - tilVG;
 
+        // Vis suksess-skjermen med dagens tall umiddelbart
+        document.getElementById('formContainer').style.display = 'none';
+        document.getElementById('status').style.display = 'block';
+        
+        const updateSummary = (yearTotal = "Laster...") => {
+            document.getElementById('summary').innerHTML = `
+                <p>💰 <strong>Lønn i dag:</strong> ${lonn} kr</p>
+                <p style="color:#d35400; font-weight:bold">${balanse < 0 ? '💸 Jakob gir mamma: ' + Math.abs(balanse) + ' kr i CASH' : '💸 Mamma gir Jakob: ' + balanse + ' kr til BANK'}</p>
+                <p>🏦 <strong>Til VG:</strong> ${tilVG} kr</p>
+                <hr style="border:0; border-top:1px solid #d0e3ff; margin:15px 0;">
+                <p style="text-align:center; font-size:1.1em; margin-bottom:5px;">📈 <strong>Totalt tjent i år:</strong></p>
+                <p style="text-align:center; font-size:1.6em; color:var(--success); font-weight:bold; margin:0;">${yearTotal} ${yearTotal !== "Laster..." ? 'kr' : ''}</p>
+            `;
+        };
+
+        updateSummary(); // Viser "Laster..." først
+
         fetch(scriptURL, { method: 'POST', body: new FormData(form)})
-            .then(() => {
-                document.getElementById('formContainer').style.display = 'none';
-                document.getElementById('status').style.display = 'block';
-                document.getElementById('summary').innerHTML = `
-                    <p>💰 <strong>Jakobs lønn:</strong> ${lonn} kr</p>
-                    <p style="color:#d35400; font-weight:bold">${balanse < 0 ? '💸 Jakob gir mamma: ' + Math.abs(balanse) + ' kr i CASH' : '💸 Mamma gir Jakob: ' + balanse + ' kr til BANK'}</p>
-                    <p>🏦 <strong>Til VG:</strong> ${tilVG} kr</p>
-                `;
+            .then(res => res.json())
+            .then(data => {
+                updateSummary(data.totalYear); // Oppdaterer med ekte total fra Google
+            })
+            .catch(err => {
+                console.log(err);
+                updateSummary("Feil ved henting");
             });
     };
 </script>

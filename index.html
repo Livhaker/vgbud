@@ -1,127 +1,172 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="no">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jakob's Paper Tracker</title>
+    <title>VG BUD - Avisoversikt</title>
     <style>
-        :root { --primary: #2c3e50; --success: #27ae60; --bg: #f4f7f6; }
-        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); color: #333; padding: 15px; display: flex; justify-content: center; }
+        :root { --primary: #d32f2f; --success: #2e7d32; --bg: #f8f9fa; --text: #333; }
+        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); color: var(--text); padding: 15px; display: flex; justify-content: center; }
         .card { background: white; width: 100%; max-width: 400px; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        h2 { text-align: center; color: var(--primary); margin-top: 0; }
+        h2 { text-align: center; color: var(--primary); margin-top: 0; font-weight: 900; letter-spacing: 1px; }
         .group { margin-bottom: 18px; }
         label { display: block; font-weight: bold; margin-bottom: 6px; font-size: 0.9em; }
         input, select { width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 10px; box-sizing: border-box; font-size: 16px; transition: 0.3s; }
-        input:focus { border-color: var(--success); outline: none; }
-        .calc-box { background: #eef9f2; padding: 15px; border-radius: 12px; border: 1px solid #cceadd; margin-top: 10px; }
-        .target-text { font-size: 0.85em; color: #555; margin-bottom: 10px; }
-        #totalMatch { font-weight: bold; }
-        button { width: 100%; background: var(--success); color: white; border: none; padding: 16px; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        input:focus { border-color: var(--primary); outline: none; }
+        .calc-box { background: #fff5f5; padding: 15px; border-radius: 12px; border: 1px solid #ffebee; margin-top: 10px; }
+        button { width: 100%; background: var(--primary); color: white; border: none; padding: 16px; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 10px; }
         button:disabled { background: #ccc; }
-        #status { display: none; text-align: center; padding: 20px; font-weight: bold; color: var(--success); }
+        
+        /* Success Screen Styles */
+        #status { display: none; text-align: center; }
+        .result-item { margin: 15px 0; padding: 10px; border-radius: 10px; background: #f0f4f0; border: 1px solid #d4e3d4; }
+        .money-val { font-weight: bold; color: var(--success); font-size: 1.2em; }
+        .owe-val { font-weight: bold; color: #d32f2f; }
     </style>
 </head>
 <body>
 
 <div class="card">
     <div id="formContainer">
-        <h2>📰 Paper Route</h2>
+        <h2>📰 VG BUD</h2>
         <form id="paperForm">
             <div class="group">
-                <label>Day</label>
+                <label>Dag</label>
                 <select name="day" id="daySelect" required>
-                    <option value="Saturday">Saturday (14 papers)</option>
-                    <option value="Sunday">Sunday (11 papers)</option>
+                    <option value="Lørdag">Lørdag (14 aviser)</option>
+                    <option value="Søndag">Søndag (11 aviser)</option>
                 </select>
             </div>
 
             <div class="group">
-                <label>Date</label>
+                <label>Dato</label>
                 <select name="date" id="dateDropdown" required></select>
             </div>
 
             <div class="group">
-                <label>Papers Ordered</label>
+                <label>Antall bestilt</label>
                 <input type="number" name="ordered" id="ordered" value="14" required>
             </div>
 
-            <div class="group">
-                <label>Papers Sold</label>
-                <input type="number" name="sold" id="sold" placeholder="0" required>
-            </div>
-
             <div class="calc-box">
-                <label>Payments (Total Sold × 55 kr)</label>
-                <div class="target-text">Goal: <span id="targetMoney">0</span> kr</div>
-                <input type="number" name="cash" id="cash" placeholder="Cash amount" required>
-                <input type="number" name="vipps" id="vipps" placeholder="Vipps amount" style="margin-top:10px" required>
+                <label>Salg fordelt på betaling</label>
+                <div class="group">
+                    <label style="font-weight: normal; font-size: 0.8em;">Solgt med Kontanter 💵</label>
+                    <input type="number" name="soldCash" id="soldCash" placeholder="0" required>
+                </div>
+                <div class="group">
+                    <label style="font-weight: normal; font-size: 0.8em;">Solgt med Vipps 📱</label>
+                    <input type="number" name="soldVipps" id="soldVipps" placeholder="0" required>
+                </div>
             </div>
 
             <div class="group" style="margin-top:15px">
-                <label>Tips (kr)</label>
+                <label>Tips totalt (kr)</label>
                 <input type="number" name="tips" id="tips" value="0">
             </div>
 
-            <button type="submit" id="submitBtn">Send to Sheet</button>
+            <button type="submit" id="submitBtn">LEGG INN</button>
         </form>
     </div>
-    <div id="status">✅ Data sent! Great job today, Jakob! 🚀</div>
+
+    <div id="status">
+        <h2>✅ Lagret!</h2>
+        <p>Bra jobba i dag, Jakob! Her er oppsummeringen:</p>
+        
+        <div class="result-item">
+            <div>Opptjent i dag:</div>
+            <div class="money-val" id="resEarned">0 kr</div>
+        </div>
+
+        <div class="result-item" id="debtBox">
+            <div id="debtLabel">Mamma skylder deg:</div>
+            <div class="money-val" id="resDebt">0 kr</div>
+        </div>
+
+        <p style="font-size: 0.8em; color: #666; margin-top: 20px;">
+            Sjekk regnearket for total oversikt over året.
+        </p>
+        <button onclick="location.reload()" style="background: #eee; color: #333; font-size: 14px; padding: 10px;">Logg ny dag</button>
+    </div>
 </div>
 
 <script>
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbzxh9To7G0rnZQKnOPF9RoPcgrIkUAKIY3qq_fw0IO1POioXsJr94ndgwobuHtZ-SeW/exec';
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbxxh9To7G0rnZQKnOPF9RoPcgrIkUAKIY3qq_fw0IO1POioXsJr94ndgwobuHtZ-SeW/exec';
     const form = document.getElementById('paperForm');
     const daySelect = document.getElementById('daySelect');
     const orderedInput = document.getElementById('ordered');
-    const soldInput = document.getElementById('sold');
-    const targetSpan = document.getElementById('targetMoney');
     const dateDropdown = document.getElementById('dateDropdown');
 
-    // 1. Auto-set presets when Day changes
-    daySelect.addEventListener('change', () => {
-        orderedInput.value = (daySelect.value === 'Saturday') ? 14 : 11;
-    });
-
-    // 2. Live Money Target Calculation
-    soldInput.addEventListener('input', () => {
-        targetSpan.innerText = (soldInput.value * 55);
-    });
-
-    // 3. Generate Dates (Saturdays and Sundays for 3 weeks)
+    // Smart Day Selection
     const today = new Date();
+    if (today.getDay() === 6) {
+        daySelect.value = "Lørdag";
+        orderedInput.value = 14;
+    } else {
+        daySelect.value = "Søndag";
+        orderedInput.value = 11;
+    }
+
+    daySelect.addEventListener('change', () => {
+        orderedInput.value = (daySelect.value === 'Lørdag') ? 14 : 11;
+    });
+
     for (let i = 0; i < 21; i++) {
         let d = new Date();
         d.setDate(today.getDate() - i);
         if (d.getDay() === 0 || d.getDay() === 6) { 
             let opt = document.createElement('option');
-            opt.value = d.toLocaleDateString('no-NO'); // Norwegian date format
+            opt.value = d.toLocaleDateString('no-NO');
             opt.innerHTML = d.toLocaleDateString('no-NO', { weekday: 'short', day: 'numeric', month: 'short' });
             dateDropdown.appendChild(opt);
         }
     }
 
-    // 4. Submit Logic
     form.addEventListener('submit', e => {
         e.preventDefault();
         
-        // Validation: Sold must be <= Ordered
-        if (parseInt(soldInput.value) > parseInt(orderedInput.value)) {
-            alert("Oops! Sold papers cannot be higher than Ordered papers.");
+        const sCash = parseInt(document.getElementById('soldCash').value) || 0;
+        const sVipps = parseInt(document.getElementById('soldVipps').value) || 0;
+        const tips = parseInt(document.getElementById('tips').value) || 0;
+        const totalSold = sCash + sVipps;
+        
+        if (totalSold > parseInt(orderedInput.value)) {
+            alert("Feil: Totalt solgt kan ikke være høyere enn antall bestilt!");
             return;
         }
 
+        // MATH FOR SUCCESS SCREEN
+        const earningsToday = (totalSold * 22) + tips;
+        const vippsTotalKr = sVipps * 55;
+        const diff = vippsTotalKr - earningsToday;
+
         document.getElementById('submitBtn').disabled = true;
-        document.getElementById('submitBtn').innerText = "Sending...";
+        document.getElementById('submitBtn').innerText = "Sender...";
 
         fetch(scriptURL, { method: 'POST', body: new FormData(form)})
             .then(response => {
+                // Update Success Screen Text
+                document.getElementById('resEarned').innerText = earningsToday + " kr";
+                
+                const debtLabel = document.getElementById('debtLabel');
+                const resDebt = document.getElementById('resDebt');
+                
+                if (diff < 0) {
+                    debtLabel.innerText = "Mamma skylder deg:";
+                    resDebt.innerText = Math.abs(diff) + " kr";
+                    resDebt.style.color = "#2e7d32";
+                } else {
+                    debtLabel.innerText = "Du skylder Mamma:";
+                    resDebt.innerText = diff + " kr";
+                    resDebt.style.color = "#d32f2f";
+                }
+
                 document.getElementById('formContainer').style.display = 'none';
                 document.getElementById('status').style.display = 'block';
             })
             .catch(error => {
-                alert('Error! Check your internet connection.');
+                alert('Noe gikk galt!');
                 document.getElementById('submitBtn').disabled = false;
-                document.getElementById('submitBtn').innerText = "Send to Sheet";
             });
     });
 </script>

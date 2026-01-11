@@ -1,60 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jakob's Paper Tracker</title>
+    <style>
+        :root { --primary: #2c3e50; --success: #27ae60; --bg: #f4f7f6; }
+        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); color: #333; padding: 15px; display: flex; justify-content: center; }
+        .card { background: white; width: 100%; max-width: 400px; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: var(--primary); margin-top: 0; }
+        .group { margin-bottom: 18px; }
+        label { display: block; font-weight: bold; margin-bottom: 6px; font-size: 0.9em; }
+        input, select { width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 10px; box-sizing: border-box; font-size: 16px; transition: 0.3s; }
+        input:focus { border-color: var(--success); outline: none; }
+        .calc-box { background: #eef9f2; padding: 15px; border-radius: 12px; border: 1px solid #cceadd; margin-top: 10px; }
+        .target-text { font-size: 0.85em; color: #555; margin-bottom: 10px; }
+        #totalMatch { font-weight: bold; }
+        button { width: 100%; background: var(--success); color: white; border: none; padding: 16px; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        button:disabled { background: #ccc; }
+        #status { display: none; text-align: center; padding: 20px; font-weight: bold; color: var(--success); }
+    </style>
+</head>
+<body>
+
 <div class="card">
-    <h2>📰 Jakob's Paper Route</h2>
-    <form id="paperForm">
-        <div class="group">
-            <label>Day</label>
-            <select name="day" id="daySelect" required>
-                <option value="Saturday">Saturday (Preset: 14)</option>
-                <option value="Sunday">Sunday (Preset: 11)</option>
-            </select>
-        </div>
+    <div id="formContainer">
+        <h2>📰 Paper Route</h2>
+        <form id="paperForm">
+            <div class="group">
+                <label>Day</label>
+                <select name="day" id="daySelect" required>
+                    <option value="Saturday">Saturday (14 papers)</option>
+                    <option value="Sunday">Sunday (11 papers)</option>
+                </select>
+            </div>
 
-        <div class="group">
-            <label>Date</label>
-            <select name="date" id="dateDropdown" required></select>
-        </div>
+            <div class="group">
+                <label>Date</label>
+                <select name="date" id="dateDropdown" required></select>
+            </div>
 
-        <div class="group">
-            <label>Papers Ordered</label>
-            <input type="number" name="ordered" id="ordered" value="14" required>
-        </div>
+            <div class="group">
+                <label>Papers Ordered</label>
+                <input type="number" name="ordered" id="ordered" value="14" required>
+            </div>
 
-        <div class="group">
-            <label>Papers Sold</label>
-            <input type="number" name="sold" id="sold" placeholder="How many sold?" required>
-        </div>
+            <div class="group">
+                <label>Papers Sold</label>
+                <input type="number" name="sold" id="sold" placeholder="0" required>
+            </div>
 
-        <div class="group" style="background: #f0f7ff; padding: 15px; border-radius: 10px;">
-            <label>Payments (Total must match Sold × 55)</label>
-            <input type="number" name="cash" id="cash" placeholder="Cash (kr)" required>
-            <input type="number" name="vipps" id="vipps" placeholder="Vipps (kr)" style="margin-top:8px" required>
-            <p id="calcHint" style="font-size: 0.8em; margin-top: 10px; color: #555;">Target: <span id="targetMoney">0</span> kr</p>
-        </div>
+            <div class="calc-box">
+                <label>Payments (Total Sold × 55 kr)</label>
+                <div class="target-text">Goal: <span id="targetMoney">0</span> kr</div>
+                <input type="number" name="cash" id="cash" placeholder="Cash amount" required>
+                <input type="number" name="vipps" id="vipps" placeholder="Vipps amount" style="margin-top:10px" required>
+            </div>
 
-        <div class="group">
-            <label>Tips (kr)</label>
-            <input type="number" name="tips" id="tips" value="0">
-        </div>
+            <div class="group" style="margin-top:15px">
+                <label>Tips (kr)</label>
+                <input type="number" name="tips" id="tips" value="0">
+            </div>
 
-        <button type="submit" id="submitBtn">Submit to Mom & Sheet</button>
-    </form>
+            <button type="submit" id="submitBtn">Send to Sheet</button>
+        </form>
+    </div>
+    <div id="status">✅ Data sent! Great job today, Jakob! 🚀</div>
 </div>
 
 <script>
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbxZepX2nwooOUN2xrDd3kc7tvM_MHOsitqMYIXCP-SazKI_VYSFLM7-ZPhxoZBmo0qe/exec';
+    const form = document.getElementById('paperForm');
     const daySelect = document.getElementById('daySelect');
     const orderedInput = document.getElementById('ordered');
     const soldInput = document.getElementById('sold');
     const targetSpan = document.getElementById('targetMoney');
+    const dateDropdown = document.getElementById('dateDropdown');
 
-    // Auto-update presets when Day changes
+    // 1. Auto-set presets when Day changes
     daySelect.addEventListener('change', () => {
         orderedInput.value = (daySelect.value === 'Saturday') ? 14 : 11;
     });
 
-    // Show him how much money he should have total
+    // 2. Live Money Target Calculation
     soldInput.addEventListener('input', () => {
-        targetSpan.innerText = soldInput.value * 55;
+        targetSpan.innerText = (soldInput.value * 55);
     });
 
-    // ... (Keep the date generation and fetch script from previous version) ...
+    // 3. Generate Dates (Saturdays and Sundays for 3 weeks)
+    const today = new Date();
+    for (let i = 0; i < 21; i++) {
+        let d = new Date();
+        d.setDate(today.getDate() - i);
+        if (d.getDay() === 0 || d.getDay() === 6) { 
+            let opt = document.createElement('option');
+            opt.value = d.toLocaleDateString('no-NO'); // Norwegian date format
+            opt.innerHTML = d.toLocaleDateString('no-NO', { weekday: 'short', day: 'numeric', month: 'short' });
+            dateDropdown.appendChild(opt);
+        }
+    }
+
+    // 4. Submit Logic
+    form.addEventListener('submit', e => {
+        e.preventDefault();
+        
+        // Validation: Sold must be <= Ordered
+        if (parseInt(soldInput.value) > parseInt(orderedInput.value)) {
+            alert("Oops! Sold papers cannot be higher than Ordered papers.");
+            return;
+        }
+
+        document.getElementById('submitBtn').disabled = true;
+        document.getElementById('submitBtn').innerText = "Sending...";
+
+        fetch(scriptURL, { method: 'POST', body: new FormData(form)})
+            .then(response => {
+                document.getElementById('formContainer').style.display = 'none';
+                document.getElementById('status').style.display = 'block';
+            })
+            .catch(error => {
+                alert('Error! Check your internet connection.');
+                document.getElementById('submitBtn').disabled = false;
+                document.getElementById('submitBtn').innerText = "Send to Sheet";
+            });
+    });
 </script>
+
+</body>
+</html>

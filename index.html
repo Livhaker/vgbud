@@ -1,30 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VGbud tracker</title>
-    <style>
-        :root { --blue: #2c3e50; --light: #ecf0f1; }
-        body { font-family: sans-serif; background: var(--light); padding: 20px; }
-        .card { max-width: 400px; margin: 0 auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        h2 { text-align: center; color: var(--blue); }
-        .group { margin-bottom: 15px; }
-        label { display: block; font-weight: bold; margin-bottom: 5px; }
-        input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        button { width: 100%; background: #27ae60; color: white; border: none; padding: 15px; border-radius: 8px; font-weight: bold; cursor: pointer; }
-    </style>
-</head>
-<body>
-
 <div class="card">
-    <h2>📰 Paper Tracker</h2>
+    <h2>📰 Jakob's Paper Route</h2>
     <form id="paperForm">
         <div class="group">
             <label>Day</label>
-            <select name="day" required>
-                <option value="Saturday">Saturday</option>
-                <option value="Sunday">Sunday</option>
+            <select name="day" id="daySelect" required>
+                <option value="Saturday">Saturday (Preset: 14)</option>
+                <option value="Sunday">Sunday (Preset: 11)</option>
             </select>
         </div>
 
@@ -35,67 +16,45 @@
 
         <div class="group">
             <label>Papers Ordered</label>
-            <input type="number" name="ordered" id="ordered" required>
+            <input type="number" name="ordered" id="ordered" value="14" required>
         </div>
 
         <div class="group">
             <label>Papers Sold</label>
-            <input type="number" name="sold" id="sold" required>
+            <input type="number" name="sold" id="sold" placeholder="How many sold?" required>
         </div>
 
-        <div class="group" style="background: #f9f9f9; padding: 10px; border-radius: 8px;">
-            <label>Payment Split</label>
-            <input type="number" name="cash" id="cash" placeholder="Cash Amount">
-            <input type="number" name="vipps" id="vipps" placeholder="Vipps Amount" style="margin-top:8px">
-            <small id="mathCheck" style="color: red; display: none;">Total doesn't match papers sold!</small>
+        <div class="group" style="background: #f0f7ff; padding: 15px; border-radius: 10px;">
+            <label>Payments (Total must match Sold × 55)</label>
+            <input type="number" name="cash" id="cash" placeholder="Cash (kr)" required>
+            <input type="number" name="vipps" id="vipps" placeholder="Vipps (kr)" style="margin-top:8px" required>
+            <p id="calcHint" style="font-size: 0.8em; margin-top: 10px; color: #555;">Target: <span id="targetMoney">0</span> kr</p>
         </div>
 
         <div class="group">
-            <label>Tips (NOK)</label>
-            <input type="number" name="tips" value="0">
+            <label>Tips (kr)</label>
+            <input type="number" name="tips" id="tips" value="0">
         </div>
 
-        <button type="submit" id="submitBtn">Save Route</button>
+        <button type="submit" id="submitBtn">Submit to Mom & Sheet</button>
     </form>
-    <div id="status" style="display:none; text-align:center; font-weight:bold; color:green; margin-top:15px;">Success! Data sent to sheet. 🚀</div>
 </div>
 
 <script>
-    // 1. Generate Weekend Dates for the last 3 weeks
-    const dateDropdown = document.getElementById('dateDropdown');
-    const today = new Date();
-    for (let i = 0; i < 21; i++) {
-        let d = new Date();
-        d.setDate(today.getDate() - i);
-        if (d.getDay() === 0 || d.getDay() === 6) { // 0 = Sun, 6 = Sat
-            let opt = document.createElement('option');
-            opt.value = d.toLocaleDateString('en-GB');
-            opt.innerHTML = d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
-            dateDropdown.appendChild(opt);
-        }
-    }
+    const daySelect = document.getElementById('daySelect');
+    const orderedInput = document.getElementById('ordered');
+    const soldInput = document.getElementById('sold');
+    const targetSpan = document.getElementById('targetMoney');
 
-    // 2. Submit Logic
-    const scriptURL = 'REPLACE_WITH_YOUR_NEW_SCRIPT_URL';
-    const form = document.getElementById('paperForm');
-
-    form.addEventListener('submit', e => {
-        e.preventDefault();
-        
-        // Basic validation: Sold must be <= Ordered
-        if (parseInt(document.getElementById('sold').value) > parseInt(document.getElementById('ordered').value)) {
-            alert("Error: Sold papers cannot be more than ordered!");
-            return;
-        }
-
-        document.getElementById('submitBtn').disabled = true;
-        fetch(scriptURL, { method: 'POST', body: new FormData(form)})
-            .then(() => {
-                form.style.display = 'none';
-                document.getElementById('status').style.display = 'block';
-            });
+    // Auto-update presets when Day changes
+    daySelect.addEventListener('change', () => {
+        orderedInput.value = (daySelect.value === 'Saturday') ? 14 : 11;
     });
-</script>
 
-</body>
-</html>
+    // Show him how much money he should have total
+    soldInput.addEventListener('input', () => {
+        targetSpan.innerText = soldInput.value * 55;
+    });
+
+    // ... (Keep the date generation and fetch script from previous version) ...
+</script>
